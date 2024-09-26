@@ -5,7 +5,6 @@
 #include <chrono>
 #include <cassert>
 #include <vector>
-#include <map>
 #include <mutex>
 
 std::mutex block_out;
@@ -57,32 +56,32 @@ bool not_everyone_finished (std::vector <Swimmer*>& swimmers) {
     }
     return false;
 }
-void swim (Swimmer* this_swimmer, std::time_t start, 
-        std::map <time_t, Swimmer*>& board_of_honor) {
-    std::time_t swimming = std::time(nullptr);
+void swim (Swimmer* this_swimmer, std::vector <Swimmer*>& results) {
+    std::time_t startTime = std::time(nullptr);
     double distance = 0;
     while(distance < 100) {
-        swimming = std::time(nullptr);
-        distance = this_swimmer->get_swim_speed() * (swimming - start);
+        distance = this_swimmer->get_swim_speed() * (std::time(nullptr) - startTime);
         if(distance >= 100) break;
         std::this_thread::sleep_for(std::chrono::seconds(1));
         block_out.lock();
-        std::cout << "The swimmer " << this_swimmer -> get_name() << " swam " 
-            << distance << " metres." << std::endl;
+            std::cout << "The swimmer " << this_swimmer -> get_name() << " swam " 
+                    << distance << " metres." << std::endl;
         block_out.unlock();
     }
-    this_swimmer -> set_finish_time(swimming - start);
+    this_swimmer -> set_finish_time(std::time(nullptr) - startTime);
     this_swimmer -> set_is_finish();
+    block_out.lock();
+        results.push_back(this_swimmer);
+    block_out.unlock();
 }
 
-void lets_start (std::vector<Swimmer*>& swimmers, std::time_t start,
-        std::map <time_t, Swimmer*>& board_of_honor) {
-    std::thread swimmer1 (swim, swimmers[0], start, std::ref(board_of_honor));
-    std::thread swimmer2 (swim, swimmers[1], start, std::ref(board_of_honor));
-    std::thread swimmer3 (swim, swimmers[2], start, std::ref(board_of_honor));
-    std::thread swimmer4 (swim, swimmers[3], start, std::ref(board_of_honor));
-    std::thread swimmer5 (swim, swimmers[4], start, std::ref(board_of_honor));
-    std::thread swimmer6 (swim, swimmers[5], start, std::ref(board_of_honor));
+void lets_start (std::vector<Swimmer*>& swimmers, std::vector<Swimmer*>& results) {
+    std::thread swimmer1 (swim, swimmers[0], std::ref(results));
+    std::thread swimmer2 (swim, swimmers[1], std::ref(results));
+    std::thread swimmer3 (swim, swimmers[2], std::ref(results));
+    std::thread swimmer4 (swim, swimmers[3], std::ref(results));
+    std::thread swimmer5 (swim, swimmers[4], std::ref(results));
+    std::thread swimmer6 (swim, swimmers[5], std::ref(results));
     swimmer1.join();
     swimmer2.join();
     swimmer3.join();
@@ -106,11 +105,11 @@ void to_sort (std::vector<Swimmer*>& swimmers) {
     }
 }
 
-void print_all (std::vector<Swimmer*>& swimmers) {
+void print_all (std::vector<Swimmer*>& results) {
     unsigned number = 1;
-    for(auto swimmer : swimmers) {
-        std::cout << number << ". " << swimmer->get_name() << " time: "
-                << swimmer->get_finish_time () << " sec." << std::endl;
+    for(auto swimmer : results) {
+        std::cout << number << ". " << swimmer->get_name() << " " <<
+                swimmer->get_finish_time() << " sec." << std::endl;
         ++number;
     }
 }
@@ -118,11 +117,10 @@ void print_all (std::vector<Swimmer*>& swimmers) {
 int main () {
     std::vector <Swimmer*> swimmers;
     to_create_swimmers(swimmers);
-    std::map <time_t, Swimmer*> board_of_honor;
-    std::time_t start = std::time(nullptr);
-    lets_start(swimmers, start, board_of_honor);
+    std::vector <Swimmer*> results;
+    lets_start(swimmers, results);
     to_sort(swimmers);
-    print_all(swimmers);
+    print_all(results);
 
     for(auto swimmer : swimmers) {
         delete swimmer;
