@@ -33,7 +33,7 @@ class Menu {
 
 void delivery (std::string in_order, Cafe* new_cafe) {
     std::this_thread::sleep_for(std::chrono::seconds(30));
-    std::cout << "\t" << in_order << " delivered." << std::endl;
+    std::cout << "\t" << in_order << " DELIVERED." << std::endl;
     new_cafe -> add_counter();
 }
 

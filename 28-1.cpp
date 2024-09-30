@@ -90,21 +90,6 @@ void lets_start (std::vector<Swimmer*>& swimmers, std::vector<Swimmer*>& results
     swimmer6.join();
 }
 
-
-void to_sort (std::vector<Swimmer*>& swimmers) {
-    for (int i = 0; i < swimmers.size(); ++i)
-    {
-        for (int j = swimmers.size()-1; j > i; --j)
-        {
-            if (swimmers[i]->get_finish_time() > swimmers[j]->get_finish_time()) {  
-                Swimmer* tempSwimmer = swimmers[i];
-                swimmers[i] = swimmers[j];
-                swimmers[j] = tempSwimmer;
-            }
-        }
-    }
-}
-
 void print_all (std::vector<Swimmer*>& results) {
     unsigned number = 1;
     for(auto swimmer : results) {
@@ -119,7 +104,6 @@ int main () {
     to_create_swimmers(swimmers);
     std::vector <Swimmer*> results;
     lets_start(swimmers, results);
-    to_sort(swimmers);
     print_all(results);
 
     for(auto swimmer : swimmers) {
